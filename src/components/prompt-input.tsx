@@ -1,4 +1,5 @@
 "use client"
+import { trpc } from "@/utils/trpc/client";
 import { SendIcon } from "lucide-react";
 import { FieldValues, useForm } from "react-hook-form"
 
@@ -8,11 +9,34 @@ export function PromptInput() {
     handleSubmit,
   } = useForm();
 
+  const mutation = trpc.llm.sendMessage.useMutation({
+    onSuccess: (res) => {
+      console.log("Message sent successfully:", res);
+      // Optionally clear the input after sending
+      const prompt = document.getElementById("prompt-input") as HTMLTextAreaElement;
+      if (prompt) {
+        prompt.value = "";
+      }
+    },
+    onError: (error) => {
+      console.error("Error sending message:", error);
+    },
+  })
+
   const onSubmit = (data: FieldValues) => {
     const { message } = data;
     if (!message || message.trim() === "") {
       return;
     }
+    const messages = [
+      {
+        role: "user" as const,
+        content: message,
+      },
+    ];
+    console.log("Sending message:", messages);
+    return;
+    mutation.mutate(messages);
   }
 
   return (
