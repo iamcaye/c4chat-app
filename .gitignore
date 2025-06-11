@@ -29,7 +29,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_YnJpZWYtbWFudGlzLTY3LmNsZXJrLmFjY291bnRzLmRldiQ
+CLERK_SECRET_KEY=sk_test_U72kzfRcBFFwDVmh1GjIo7f0sJ3bLJXa5ddhw8ZmqN
 # env files (can opt-in for committing if needed)
 .env*
 
