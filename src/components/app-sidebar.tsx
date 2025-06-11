@@ -161,7 +161,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         { /* <TeamSwitcher teams={data.teams} /> */}
-        <img src="c4-logo.png" alt="C4 Logo" className="h-[48px] object-contain" />
+        <img src="c4-logo.webp" alt="C4 Logo" className="h-[48px] object-contain" />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
