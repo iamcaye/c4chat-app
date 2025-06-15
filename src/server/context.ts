@@ -1,13 +1,8 @@
 import { getAuth } from "@clerk/nextjs/server";
-import * as trpcNext from '@trpc/server/adapters/next';
 import { db } from "@/db/drizzle";
+import { NextRequest } from "next/server";
 
-export async function createContext({
-    req,
-}: trpcNext.CreateNextContextOptions) {
-    // Create your context based on the request object
-    // Will be available as `ctx` in all your resolvers
-    // This is just an example of something you might want to do in your ctx fn
+export async function createContext({ req }: { req: NextRequest }) {
     async function getUserFromHeader() {
         const auth = getAuth(req);
         return auth.userId ? { id: auth.userId, auth } : null;

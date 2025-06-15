@@ -1,11 +1,9 @@
-import { httpBatchLink } from "@trpc/client";
-
 import { appRouter } from "@/server";
+import { NextRequest } from "next/server";
+import { db } from "@/db/drizzle";
 
 export const trpcServer = appRouter.createCaller({
-    links: [
-        httpBatchLink({
-            url: "/api/trpc",
-        }),
-    ],
+    req: new NextRequest("http://localhost:3000/api/trpc"),
+    user: null,
+    db,
 });
