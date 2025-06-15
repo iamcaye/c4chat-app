@@ -17,10 +17,12 @@ export default function Provider({ children }: { children: React.ReactNode }) {
     })
   );
   return (
-    <ClerkProvider>
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      </trpc.Provider>
-    </ClerkProvider>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <ClerkProvider>
+          {children}
+        </ClerkProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 }

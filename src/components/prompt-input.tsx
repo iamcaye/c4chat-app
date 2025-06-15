@@ -35,8 +35,20 @@ export function PromptInput() {
       },
     ];
     console.log("Sending message:", messages);
-    return;
-    mutation.mutate(messages);
+    mutation.mutate({
+      messages: messages,
+      threadId: undefined, // You can set this to a specific thread ID if needed
+    },
+      {
+        onSuccess: (resp) => {
+          console.log("Response received:", resp);
+          console.log("Message sent successfully");
+        },
+        onError: (error) => {
+          console.error("Error sending message:", error);
+        },
+      }
+    );
   }
 
   return (
