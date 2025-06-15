@@ -1,7 +1,7 @@
 import { openai } from "@/lib/openai";
 import { publicProcedure, router } from "../trpc";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { messages, threads } from "@/db/schema";
 
 const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
@@ -43,8 +43,12 @@ export const llmRouter = router({
 
         const { db } = ctx;
         const threadExists = await db.query.threads.findFirst({
-            where: eq(threads.id, input.threadId),
+            where: and(eq(threads.id, input.threadId), eq(threads.userId, userId)),
         });
+
+        if (!threadExists) {
+            throw new Error("Thread not found or you do not have access to it");
+        }
 
         const threadMessages = await db.query.messages.findMany({
             where: eq(messages.threadId, input.threadId),
