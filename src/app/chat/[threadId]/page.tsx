@@ -4,7 +4,7 @@ import { Chat } from "./chat";
 export default async function ChatPage({
     params
 }: {
-    params: { threadId?: string } | Promise<{ threadId?: string }>
+    params: Promise<{ threadId?: string }>
 }) {
 
     const threadId = (await params)?.threadId as string;
