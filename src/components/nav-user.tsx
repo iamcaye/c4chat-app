@@ -34,6 +34,11 @@ export function NavUser() {
   const { user } = useUser();
   const { signOut } = useClerk();
 
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.reload(); // Reload the page to reflect the sign-out
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -85,7 +90,7 @@ export function NavUser() {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut()}>
+              <DropdownMenuItem onClick={handleSignOut}>
                 <LogOut />
                 Log out
               </DropdownMenuItem>
@@ -101,7 +106,7 @@ export function NavUser() {
                 Sign Up
               </button>
             </SignUpButton>
-            <SignInButton oauthFlow="popup" mode="modal" >
+            <SignInButton oauthFlow="popup" mode="modal">
               <button
                 className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 font-medium text-white hover:bg-secondary/90">
                 Sign In

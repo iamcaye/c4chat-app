@@ -14,7 +14,11 @@ export function PromptInput({
     handleSubmit,
   } = useForm();
 
-
+  let initMessage = "";
+  if (typeof window !== "undefined") {
+    initMessage = localStorage.getItem("message") || "";
+    localStorage.removeItem("message");
+  }
 
   const onSubmit = (data: FieldValues) => {
     const { message } = data;
@@ -28,6 +32,7 @@ export function PromptInput({
     <form className="flex flex-col w-full p-4 max-h-[150px] overflow-y-auto relative" onSubmit={handleSubmit(onSubmit)}>
       <textarea id="prompt-input" className="border border-gray-500 rounded-lg p-4 w-full h-64 resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent bg-secondary placeholder:text-gray-400 shadow-lg"
         {...register("message")}
+        defaultValue={initMessage}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();

@@ -1,22 +1,16 @@
 "use client";
+
 import { PromptInput } from "@/components/prompt-input";
 import { trpc } from "@/utils/trpc/client";
+import { useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
   const router = useRouter();
   const utils = trpc.useUtils();
+  const clerk = useClerk();
 
-  const mutation = trpc.llm.sendMessage.useMutation({
-    onSuccess: (res) => {
-      router.push(`/chat/${res.threadId}`);
-      utils.llm.getThreads.invalidate();
-      utils.llm.getThreadMessages.invalidate({ threadId: res.threadId as string });
-    },
-    onError: (error) => {
-      console.error("Error sending message:", error);
-    },
-  })
+  const mutation = trpc.llm.sendMessage.useMutation({})
 
 
   const onSend = (message: string) => {
@@ -27,6 +21,22 @@ export default function Home() {
         role: "user",
         content: message,
       }],
+    }, {
+      onSuccess: (res) => {
+        router.push(`/chat/${res.threadId}`);
+        utils.llm.getThreads.invalidate();
+        utils.llm.getThreadMessages.invalidate({ threadId: res.threadId as string });
+      },
+      onError: (error) => {
+        console.log(JSON.stringify(error, null, 2));
+        if (error.shape?.message.toUpperCase() === "UNAUTHORIZED") {
+          // show sigin modal
+          localStorage.setItem("message", message);
+          clerk.openSignIn({
+            oauthFlow: "popup",
+          });
+        }
+      },
     });
     // Here you can implement the logic to handle the sent message,
     // such as updating state or sending it to a server.

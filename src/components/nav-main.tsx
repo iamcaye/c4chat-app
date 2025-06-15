@@ -15,11 +15,22 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import { trpc } from "@/utils/trpc/client"
+import { useAuth } from "@clerk/nextjs"
 import { ChevronRight, MessageSquareIcon } from "lucide-react"
+import { useEffect } from "react"
 
 export function NavMain() {
   const threadsQuery = trpc.llm.getThreads.useQuery();
   const threads = threadsQuery.data;
+  const utils = trpc.useUtils();
+  const session = useAuth();
+
+  useEffect(() => {
+    // Invalidate threads cache when component mounts
+    utils.llm.getThreads.invalidate();
+  }, [utils.llm.getThreads, session.userId]);
+
+
   return (
     <SidebarGroup>
       <SidebarMenu>

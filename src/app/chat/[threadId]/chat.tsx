@@ -10,10 +10,13 @@ export function Chat({
     inputMessages,
     thread,
 }: {
-    inputMessages?: inferProcedureOutput<AppRouter["llm"]["getThreadMessages"]>["messages"];
+    inputMessages?: inferProcedureOutput<AppRouter["llm"]["getThreadMessages"]>["messages"]
     thread?: inferProcedureOutput<AppRouter["llm"]["getThreadMessages"]>["thread"];
 }) {
     const [loading, setLoading] = useState(false);
+    const utils = trpc.useUtils();
+    const [messages, setMessages] = useState(inputMessages || []);
+
     useEffect(() => {
         const chatContainer = document.getElementById("chat-container");
         if (chatContainer) {
@@ -23,9 +26,9 @@ export function Chat({
                 behavior: 'smooth',
             });
         }
-    }, [inputMessages]);
+    }, [messages]);
 
-    const threadId = thread?.id || '';
+    let threadId = thread?.id || '';
 
     const mutation = trpc.llm.sendMessage.useMutation({
         onSuccess: (res) => {
@@ -37,9 +40,19 @@ export function Chat({
                 prompt.value = "";
             }
 
-            const utils = trpc.useUtils();
-            utils.llm.getThreads.invalidate();
-            utils.llm.getThreadMessages.invalidate({ threadId: res.threadId as string });
+            if (!threadId) {
+                threadId = res.threadId;
+                utils.llm.getThreads.invalidate();
+            }
+
+            setMessages([...messages, {
+                id: crypto.randomUUID(),
+                role: 'assistant' as const,
+                content: res.response,
+                threadId: threadId,
+                contentType: 'text' as const,
+                createdAt: new Date().toISOString(),
+            }]);
         },
         onError: (error) => {
             console.error("Error sending message:", error);
@@ -48,29 +61,25 @@ export function Chat({
     })
 
     const onSend = (message: string) => {
-        inputMessages?.push({
+        setMessages([...messages, {
             id: crypto.randomUUID(),
-            threadId: threadId as string,
+            role: 'user' as const,
             content: message,
-            contentType: "text",
-            role: "user",
+            threadId: threadId,
+            contentType: 'text' as const,
             createdAt: new Date().toISOString(),
-        });
-
+        }]);
         setLoading(true);
+
         mutation.mutate({
-            messages: inputMessages?.map(msg => ({ role: msg.role, content: msg.content })) || [],
+            messages: messages?.map((msg) => ({ role: msg.role, content: msg.content })) || [],
             threadId,
-        },
-            {
-                onSuccess: () => {
-                    console.log("Message sent successfully");
-                },
-                onError: (error) => {
-                    console.error("Error sending message:", error);
-                },
+        }, {
+            onSuccess: (res) => {
+                threadId = res.threadId;
+                utils.llm.getThreadMessages.invalidate({ threadId });
             }
-        );
+        });
     }
 
     return (
@@ -83,7 +92,7 @@ export function Chat({
             <div className="flex-1 overflow-y-auto p-4" id="chat-container">
                 <div className="w-full md:w-9/10 lg:w-8/10 mx-auto flex flex-col">
                     {
-                        inputMessages?.map((message) => (
+                        messages?.map((message) => (
                             <div key={message.id} className={`flex mb-4 p-2 break-words whitespace-pre-line
                             ${message.role === 'user'
                                     ? 'bg-primary/20 self-end w-fit rounded-md'
