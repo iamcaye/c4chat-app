@@ -10,8 +10,7 @@ export async function createContext({ req }: { req: NextRequest }) {
 
     const user = await getUserFromHeader();
     return {
-        req,
-        user,
+        userId: user?.id || "",
         db,
     };
 }

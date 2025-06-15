@@ -2,6 +2,7 @@ import { pgEnum, pgTable, uuid } from 'drizzle-orm/pg-core';
 import { text, timestamp } from 'drizzle-orm/pg-core';
 
 export const contentType = pgEnum('content_type', ['text', 'image', 'video']);
+export const roleType = pgEnum('role_type', ['user', 'assistant']);
 
 export const threads = pgTable('threads', {
     id: uuid().defaultRandom().primaryKey(),
@@ -15,7 +16,7 @@ export const messages = pgTable('messages', {
     threadId: text('thread_id').notNull(),
     content: text('content').notNull(),
     contentType: contentType().notNull().default('text'),
-    role: text('role').notNull(), // 'user' or 'assistant'
+    role: roleType().notNull().default('user'),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
 });
 

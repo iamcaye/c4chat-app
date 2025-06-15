@@ -1,20 +1,58 @@
 import { openai } from "@/lib/openai";
 import { publicProcedure, router } from "../trpc";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 import { messages, threads } from "@/db/schema";
 
 const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
-    if (!ctx.user || !ctx.user.id) {
+    if (!ctx.userId) {
         throw new Error("Unauthorized");
     }
     return next({
         ctx: {
-            user: ctx.user,
+            user: {
+                id: ctx.userId,
+            },
+            db: ctx.db, // Pass the database instance to the next handler
         },
     });
 });
 
 export const llmRouter = router({
+    getThreads: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.user?.id;
+        if (!userId) {
+            throw new Error("User not authenticated");
+        }
+
+        const { db } = ctx;
+
+        const threadsList = await db.query.threads.findMany({
+            where: eq(threads.userId, userId),
+            orderBy: (threads, { desc }) => desc(threads.createdAt),
+        });
+        return threadsList;
+    }),
+    getThreadMessages: protectedProcedure.input(z.object({
+        threadId: z.string(),
+    })).query(async ({ input, ctx }) => {
+        const userId = ctx.user?.id;
+        if (!userId) {
+            throw new Error("User not authenticated");
+        }
+
+        const { db } = ctx;
+        const threadExists = await db.query.threads.findFirst({
+            where: eq(threads.id, input.threadId),
+        });
+
+        const threadMessages = await db.query.messages.findMany({
+            where: eq(messages.threadId, input.threadId),
+            orderBy: (messages, { asc }) => asc(messages.createdAt),
+        });
+
+        return { messages: threadMessages, thread: threadExists || null };
+    }),
     sendMessage: protectedProcedure.input(z.object({
         threadId: z.string().optional(),
         messages: z.array(
@@ -74,6 +112,7 @@ export const llmRouter = router({
         })
 
         return {
+            threadId: input.threadId,
             response: completion.choices[0]?.message?.content || "",
         };
     }),

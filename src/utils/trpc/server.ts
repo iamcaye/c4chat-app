@@ -1,9 +1,18 @@
 import { appRouter } from "@/server";
-import { NextRequest } from "next/server";
 import { db } from "@/db/drizzle";
+import { auth } from '@clerk/nextjs/server'; // <-- server-safe
 
-export const trpcServer = appRouter.createCaller({
-    req: new NextRequest("/api/trpc"),
-    user: null,
-    db,
-});
+export async function createServerContext() {
+    const session = await auth(); // runs server-side in Server Component
+
+    return {
+        userId: session.userId || "",
+        db,
+    };
+}
+
+export async function getTrpcServer() {
+    const context = await createServerContext();
+    return appRouter.createCaller(context);
+}
+
