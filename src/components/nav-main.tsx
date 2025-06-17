@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/sidebar"
 import { trpc } from "@/utils/trpc/client"
 import { useAuth } from "@clerk/nextjs"
-import { ChevronRight, MessageSquareIcon } from "lucide-react"
+import { ChevronRight, LoaderCircle, MessageSquareIcon } from "lucide-react"
+import Link from "next/link"
 import { useEffect } from "react"
 
 export function NavMain() {
   const threadsQuery = trpc.llm.getThreads.useQuery();
   const threads = threadsQuery.data;
+  const isLoading = threadsQuery.isLoading;
   const utils = trpc.useUtils();
   const session = useAuth();
 
@@ -45,7 +47,11 @@ export function NavMain() {
               <SidebarMenuButton tooltip="Chats">
                 <MessageSquareIcon className="h-4 w-4" />
                 <span>Chats</span>
-                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                {isLoading
+                  ? <LoaderCircle className="ml-auto h-4 w-4 animate-spin transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  : <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                }
+
               </SidebarMenuButton>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -53,9 +59,9 @@ export function NavMain() {
                 {threads?.map((subItem) => (
                   <SidebarMenuSubItem key={subItem.title}>
                     <SidebarMenuSubButton asChild>
-                      <a href={`/chat/${subItem.id}`}>
+                      <Link href={`/chat/${subItem.id}`}>
                         <span>{subItem.title}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 ))}
