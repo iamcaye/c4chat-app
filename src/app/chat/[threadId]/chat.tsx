@@ -35,11 +35,6 @@ export function Chat({
             setLoading(false);
             console.log("Message sent successfully:", res);
             // Optionally clear the input after sending
-            const prompt = document.getElementById("prompt-input") as HTMLTextAreaElement;
-            if (prompt) {
-                prompt.value = "";
-            }
-
             if (!threadId) {
                 threadId = res.threadId;
                 utils.llm.getThreads.invalidate();
@@ -61,18 +56,24 @@ export function Chat({
     })
 
     const onSend = (message: string) => {
-        setMessages([...messages, {
+        const newMessage = {
             id: crypto.randomUUID(),
             role: 'user' as const,
             content: message,
             threadId: threadId,
             contentType: 'text' as const,
             createdAt: new Date().toISOString(),
-        }]);
+        }
+        setMessages([...messages, newMessage]);
         setLoading(true);
+        const prompt = document.getElementById("prompt-input") as HTMLTextAreaElement;
+        if (prompt) {
+            prompt.value = "";
+        }
+
 
         mutation.mutate({
-            messages: messages?.map((msg) => ({ role: msg.role, content: msg.content })) || [],
+            messages: [...messages, newMessage]?.map((msg) => ({ role: msg.role, content: msg.content })) || [],
             threadId,
         }, {
             onSuccess: (res) => {
